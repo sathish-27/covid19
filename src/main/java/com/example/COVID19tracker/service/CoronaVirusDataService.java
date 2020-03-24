@@ -45,21 +45,7 @@ public class CoronaVirusDataService {
 	public void fetchVirusData() throws IOException, InterruptedException {
 		ArrayList<LocationStats> newStats = new ArrayList<>();
 		String response = this.restTemplate.getForObject(URI.create(VIRUS_DATA_URL), String.class);
-		StringReader in = new StringReader(response);
-		Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(in);
-		for (CSVRecord record : records) {
-			LocationStats locationState = new LocationStats();
-			locationState.setState(record.get("Province/State"));
-			locationState.setCountry(record.get("Country/Region"));
-			int totalcasetoday = Integer.parseInt(record.get(record.size() - 1));
-			int predaycases = Integer.parseInt(record.get(record.size() - 2));
-			locationState.setLatestTotalCases(totalcasetoday);
-			locationState.setDiffcases(totalcasetoday - predaycases);
-			locationState.setLan(record.get("Long"));
-			locationState.setLat(record.get("Lat"));
-
-			newStats.add(locationState);
-		}
+		newStats = getRecord(response);
 		this.allStats = newStats;
 	}
 
@@ -68,21 +54,7 @@ public class CoronaVirusDataService {
 	public void fetchVirusConfirmcaseData() throws IOException, InterruptedException {
 		ArrayList<LocationStats> newStats = new ArrayList<>();
 		String response = this.restTemplate.getForObject(URI.create(VIRUS_CONFIRMED_CASE_URL), String.class);
-		StringReader in = new StringReader(response);
-		Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(in);
-		for (CSVRecord record : records) {
-			LocationStats locationState = new LocationStats();
-			locationState.setState(record.get("Province/State"));
-			locationState.setCountry(record.get("Country/Region"));
-			int totalcasetoday = Integer.parseInt(record.get(record.size() - 1));
-			int predaycases = Integer.parseInt(record.get(record.size() - 2));
-			locationState.setLatestTotalCases(totalcasetoday);
-			locationState.setDiffcases(totalcasetoday - predaycases);
-			locationState.setLan(record.get("Long"));
-			locationState.setLat(record.get("Lat"));
-
-			newStats.add(locationState);
-		}
+		newStats = getRecord(response);
 		this.allconfirmedcases = newStats;
 	}
 
@@ -96,21 +68,7 @@ public class CoronaVirusDataService {
 		ArrayList<LocationStats> newStats = new ArrayList<>();
 		String response = this.restTemplate.getForObject(URI.create(VIRUS_RECOVERED_CASES_URL), String.class);
 
-		StringReader in = new StringReader(response);
-		Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(in);
-		for (CSVRecord record : records) {
-			LocationStats locationState = new LocationStats();
-			locationState.setState(record.get("Province/State"));
-			locationState.setCountry(record.get("Country/Region"));
-			int totalcasetoday = Integer.parseInt(record.get(record.size() - 1));
-			int predaycases = Integer.parseInt(record.get(record.size() - 2));
-			locationState.setLatestTotalCases(totalcasetoday);
-			locationState.setDiffcases(totalcasetoday - predaycases);
-			locationState.setLan(record.get("Long"));
-			locationState.setLat(record.get("Lat"));
-
-			newStats.add(locationState);
-		}
+		newStats = getRecord(response);
 		this.allrecorvedcases = newStats;
 	}
 
@@ -120,21 +78,7 @@ public class CoronaVirusDataService {
 		ArrayList<LocationStats> newStats = new ArrayList<>();
 		String response = this.restTemplate.getForObject(URI.create(VIRUS_DEATH_CASES_URL), String.class);
 
-		StringReader in = new StringReader(response);
-		Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(in);
-		for (CSVRecord record : records) {
-			LocationStats locationState = new LocationStats();
-			locationState.setState(record.get("Province/State"));
-			locationState.setCountry(record.get("Country/Region"));
-			int totalcasetoday = Integer.parseInt(record.get(record.size() - 1));
-			int predaycases = Integer.parseInt(record.get(record.size() - 2));
-			locationState.setLatestTotalCases(totalcasetoday);
-			locationState.setDiffcases(totalcasetoday - predaycases);
-			locationState.setLan(record.get("Long"));
-			locationState.setLat(record.get("Lat"));
-
-			newStats.add(locationState);
-		}
+		newStats = getRecord(response);
 		this.allDeathcases = newStats;
 	}
 
@@ -146,4 +90,34 @@ public class CoronaVirusDataService {
 		return allrecorvedcases;
 	}
 
+	private ArrayList<LocationStats> getRecord(String request) throws IOException {
+		ArrayList<LocationStats> newStats = new ArrayList<>();
+		StringReader in = new StringReader(request);
+		Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(in);
+		for (CSVRecord record : records) {
+			LocationStats locationState = new LocationStats();
+			locationState.setState(record.get("Province/State"));
+			locationState.setCountry(record.get("Country/Region"));
+			String totTodaystr = record.get(record.size() - 1);
+			String preDayStr = record.get(record.size() - 2);
+			int totalcasetoday = 0;
+			int predaycases = 0;
+			if ("".equalsIgnoreCase(totTodaystr)) {
+				totalcasetoday = 0;
+			} else {
+				totalcasetoday = Integer.parseInt(totTodaystr);
+			}
+			if ("".equalsIgnoreCase(preDayStr)) {
+				predaycases = 0;
+			} else {
+				predaycases = Integer.parseInt(preDayStr);
+			}
+
+			locationState.setLatestTotalCases(totalcasetoday);
+			locationState.setDiffcases(totalcasetoday - predaycases);
+
+			newStats.add(locationState);
+		}
+		return newStats;
+	}
 }
