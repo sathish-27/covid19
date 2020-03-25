@@ -4,17 +4,32 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.example.COVID19tracker.models.Indiadata;
 import com.example.COVID19tracker.models.LocationStats;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class CoronaVirusDataService {
@@ -29,16 +44,21 @@ public class CoronaVirusDataService {
 	private static String VIRUS_CONFIRMED_CASE_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv";
 	private static String VIRUS_DEATH_CASES_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv";
 	private static String VIRUS_RECOVERED_CASES_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv";
-
+	private static String INDIA_CORONA_DATA = "https://api.rootnet.in/covid19-in/stats/daily";
 	private ArrayList<LocationStats> allStats = new ArrayList<>();
 
 	public ArrayList<LocationStats> getAllStats() {
 		return allStats;
 	}
 
+	private Indiadata indiadata = new Indiadata();
 	private ArrayList<LocationStats> allconfirmedcases = new ArrayList<>();
 	private ArrayList<LocationStats> allDeathcases = new ArrayList<>();
 	private ArrayList<LocationStats> allrecorvedcases = new ArrayList<>();
+
+	public Indiadata getIndiadata() {
+		return indiadata;
+	}
 
 	@PostConstruct
 	@Scheduled(cron = "* 30 * * * * ")
@@ -119,5 +139,29 @@ public class CoronaVirusDataService {
 			newStats.add(locationState);
 		}
 		return newStats;
+	}
+
+	@PostConstruct
+	@Scheduled(cron = "* 40 * * * * ")
+	private Indiadata getIndiaDailyData() {
+		Indiadata indiaData = new Indiadata();
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			Map<String, String> uriParams = new HashMap<String, String>();
+			uriParams.put("content-type:", "application/json");
+			String response = this.restTemplate.getForObject(INDIA_CORONA_DATA, String.class, uriParams);
+
+			indiaData = mapper.readValue(response, Indiadata.class);
+			indiadata=indiaData;
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO: handle exception
+			System.out.println(e);
+		}
+		return indiaData;
+
 	}
 }
