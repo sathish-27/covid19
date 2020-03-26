@@ -41,9 +41,9 @@ public class CoronaVirusDataService {
 	}
 
 	private static String VIRUS_DATA_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv";
-	private static String VIRUS_CONFIRMED_CASE_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv";
-	private static String VIRUS_DEATH_CASES_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv";
-	private static String VIRUS_RECOVERED_CASES_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv";
+	private static String VIRUS_CONFIRMED_CASE_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv";
+	private static String VIRUS_DEATH_CASES_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv";
+	private static String VIRUS_RECOVERED_CASES_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv";
 	private static String INDIA_CORONA_DATA = "https://api.rootnet.in/covid19-in/stats/daily";
 	private ArrayList<LocationStats> allStats = new ArrayList<>();
 
@@ -64,7 +64,7 @@ public class CoronaVirusDataService {
 	@Scheduled(cron = "* 30 * * * * ")
 	public void fetchVirusData() throws IOException, InterruptedException {
 		ArrayList<LocationStats> newStats = new ArrayList<>();
-		String response = this.restTemplate.getForObject(URI.create(VIRUS_DATA_URL), String.class);
+		String response = this.restTemplate.getForObject(URI.create(VIRUS_CONFIRMED_CASE_URL), String.class);
 		newStats = getRecord(response);
 		this.allStats = newStats;
 	}
